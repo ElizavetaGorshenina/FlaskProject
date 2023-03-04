@@ -27,8 +27,8 @@ def create_users():
     > done! created users: <User #1 'admin'> <User #2 'james'>
     """
     from blog.models.user import User
-    admin = User(username="admin", is_staff=True)
-    james = User(username="james")
+    admin = User(username="admin", email="admin@admin", is_staff=True)
+    james = User(username="james", email="james@james")
     db.session.add(admin)
     db.session.add(james)
     db.session.commit()

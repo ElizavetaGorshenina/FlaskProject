@@ -13,20 +13,17 @@ class User(db.Model, UserMixin):
     is_staff = Column(Boolean, nullable=False, default=False)
     _password = Column(LargeBinary, nullable=True)
 
+    @property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, value):
+        self._password = flask_bcrypt.generate_password_hash(value)
+
+    def validate_password(self, password) -> bool:
+        return flask_bcrypt.check_password_hash(self._password, password)
+
 
 def __repr__(self):
     return f"<User #{self.id} {self.username!r}>"
-
-
-@property
-def password(self):
-    return self._password
-
-
-@password.setter
-def password(self, value):
-    self._password = flask_bcrypt.generate_password_hash(value)
-
-
-def validate_password(self, password) -> bool:
-    return flask_bcrypt.check_password_hash(self._password, password)

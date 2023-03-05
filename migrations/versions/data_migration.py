@@ -1,6 +1,7 @@
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import table, column
+from blog.security import flask_bcrypt
 
 # revision identifiers, used by Alembic.
 revision = 'data_migration'
@@ -20,7 +21,9 @@ def upgrade():
                        column('_password', sa.LargeBinary()),
                        )
 
-    op.bulk_insert(user_table, [{"id": 1, "username": "admin", "first_name": "Mikhail", "last_name": "Kruglov", "email": "admin@blog.ru", "is_staff": True}])
+    op.bulk_insert(user_table, [
+        {"id": 1, "username": "admin", "first_name": "Mikhail", "last_name": "Kruglov", "email": "admin@blog.ru",
+         "is_staff": True, "_password": flask_bcrypt.generate_password_hash("adminpass")}])
 
 
 def downgrade():

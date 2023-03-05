@@ -4,11 +4,18 @@ from sqlalchemy.exc import IntegrityError
 
 from blog.models.database import db
 from blog.models.user import User
-from blog.forms.user import RegistrationForm
+from blog.forms.user import RegistrationForm, LoginForm
+
+from werkzeug.exceptions import NotFound
 
 auth_app = Blueprint("auth_app", __name__)
 login_manager = LoginManager()
 login_manager.login_view = "auth_app.login"
+
+
+@auth_app.route("/", methods=["GET"], endpoint="index")
+def index():
+    return render_template("/index.html", current_user=current_user)
 
 
 @login_manager.user_loader
@@ -29,16 +36,18 @@ __all__ = [
 
 @auth_app.route("/login/", methods=["GET", "POST"], endpoint="login")
 def login():
-    if request.method == "GET":
-        return render_template("auth/login.html")
-    username = request.form.get("username")
-    if not username:
-        return render_template("auth/login.html", error="username not passed")
-    user = User.query.filter_by(username=username).one_or_none()
-    if user is None:
-        return render_template("auth/login.html", error=f"no user {username!r} found")
-    login_user(user)
-    return redirect(url_for("index"))
+    if current_user.is_authenticated:
+        return redirect(url_for("index"))
+    form = LoginForm(request.form)
+    if request.method == "POST" and form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).one_or_none()
+        if user is None:
+            return render_template("auth/login.html", form=form, error="username doesn't exist")
+        if not user.validate_password(form.password.data):
+            return render_template("auth/login.html", form=form, error="invalid username or password")
+        login_user(user)
+        return redirect(url_for("index"))
+    return render_template("auth/login.html", form=form)
 
 
 @auth_app.route("/logout/", endpoint="logout")
@@ -57,7 +66,7 @@ def secret_view():
 @auth_app.route("/register/", methods=["GET", "POST"], endpoint="register")
 def register():
     if current_user.is_authenticated:
-        return redirect("index")
+        return redirect(url_for("index"))
     error = None
     form = RegistrationForm(request.form)
     if request.method == "POST" and form.validate_on_submit():
@@ -86,6 +95,23 @@ def register():
             login_user(user)
             return redirect(url_for("index"))
     return render_template("auth/register.html", form=form, error=error)
+
+
+@auth_app.route("/login-as/", methods=["GET", "POST"], endpoint="login-as")
+def login_as():
+    if not (current_user.is_authenticated and current_user.is_staff):
+    # non-admin users should not know about this feature
+        raise NotFound
+    if request.method == "GET":
+        return render_template("auth/login_for_admin.html")
+    username = request.form.get("username")
+    if not username:
+        return render_template("auth/login_for_admin.html", error="username not passed")
+    user = User.query.filter_by(username=username).one_or_none()
+    if user is None:
+        return render_template("auth/login_for_admin.html", error=f"no user {username!r} found")
+    login_user(user)
+    return redirect(url_for("index"))
 
 
 __all__ = [

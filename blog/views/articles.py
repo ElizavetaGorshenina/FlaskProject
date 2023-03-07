@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, current_app, redirect, url_for
 from flask_login import login_required, current_user
 from sqlalchemy.exc import IntegrityError
+from werkzeug.exceptions import NotFound
 
 from blog.models.database import db
 from blog.models import Author, Article
@@ -38,5 +39,13 @@ def create_article():
             current_app.logger.exception("Could not create a new article!")
             error = "Could not create article!"
         else:
-            return redirect(url_for("articles_app.list"))
+            return redirect(url_for("articles_app.details", article_id=article.id))
     return render_template("articles/create.html", form=form, error=error)
+
+
+@articles_app.route("/<int:article_id>/", endpoint="details")
+def article_details(article_id):
+    article = Article.query.filter_by(id=article_id).one_or_none()
+    if article is None:
+        raise NotFound
+    return render_template("articles/details.html", article=article)

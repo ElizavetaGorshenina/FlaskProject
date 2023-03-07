@@ -4,11 +4,6 @@ from blog.models.user import User
 
 
 users_app = Blueprint("users_app", __name__)
-USERS = {
-    1: "James",
-    2: "Brian",
-    3: "Peter",
-}
 
 
 @users_app.route("/", endpoint="list")

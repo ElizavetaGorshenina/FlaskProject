@@ -11,12 +11,14 @@ Articles list
     <ul>
         {% for article in articles %}
         <li>
-            #{{ article.id }} ({{ author.title }})
+            #{{ article.title }} ({{ article.author.user.username }})
         </li>
         {% endfor %}
     </ul>
     {% else %}
     <h3>No articles yet</h3>
     {% endif %}
+    <hr>
+    <a href="{{ url_for('articles_app.create') }}">Create new</a>
 </div>
 {% endblock %}

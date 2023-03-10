@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import NotFound
 
 from blog.models.database import db
-from blog.models import Author, Article
+from blog.models import Author, Article, Tag
 from blog.forms.article import CreateArticleForm
 
 articles_app = Blueprint("articles_app", __name__)
@@ -21,6 +21,7 @@ def articles_list():
 def create_article():
     error = None
     form = CreateArticleForm(request.form)
+    form.tags.choices = [(tag.id, tag.name) for tag in Tag.query.order_by("name")]
     if request.method == "POST" and form.validate_on_submit():
         article = Article(title=form.title.data.strip(), body=form.body.data)
         db.session.add(article)
@@ -33,6 +34,10 @@ def create_article():
             db.session.add(author)
             db.session.flush()
             article.author = current_user.author
+        if form.tags.data:
+            selected_tags = Tag.query.filter(Tag.id.in_(form.tags.data))
+            for tag in selected_tags:
+                article.tags.append(tag)
         try:
             db.session.commit()
         except IntegrityError:

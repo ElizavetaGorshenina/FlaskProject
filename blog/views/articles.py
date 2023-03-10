@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, current_app, redirect, ur
 from flask_login import login_required, current_user
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import NotFound
+from sqlalchemy.orm import joinedload
 
 from blog.models.database import db
 from blog.models import Author, Article, Tag
@@ -50,7 +51,9 @@ def create_article():
 
 @articles_app.route("/<int:article_id>/", endpoint="details")
 def article_details(article_id):
-    article = Article.query.filter_by(id=article_id).one_or_none()
+    article = Article.query.filter_by(id=article_id).options(
+        joinedload(Article.tags)
+    ).one_or_none()
     if article is None:
         raise NotFound
     return render_template("articles/details.html", article=article)

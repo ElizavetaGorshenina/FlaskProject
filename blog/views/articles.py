@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import NotFound
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql.expression import not_
 
 from blog.models.database import db
 from blog.models import Author, Article, Tag
@@ -57,3 +58,16 @@ def article_details(article_id):
     if article is None:
         raise NotFound
     return render_template("articles/details.html", article=article)
+
+
+@articles_app.route("/<string:tag_name>/", endpoint="articles-by-tag")
+def articles_by_tag(tag_name):
+    target_tag = Tag.query.filter_by(name=tag_name).first()
+    target_articles = []
+    articles = Article.query.all()
+    for article in articles:
+        if target_tag in article.tags:
+            target_articles.append(article)
+    if target_articles is None:
+        raise NotFound
+    return render_template("articles/list.html", articles=target_articles)

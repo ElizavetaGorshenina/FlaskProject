@@ -12,7 +12,10 @@ Article #{{ article.id }}: {{ article.title }}
     <div>Tags:</div>
     <ul>
         {% for tag in article.tags %}
-        <li>{{ tag.name }}</li>
+        <li>
+            <a href="{{ url_for('articles_app.articles-by-tag', tag_name=tag.name) }}">{{
+                tag.name }}</a>
+        </li>
         {% endfor %}
     </ul>
     {% endif %}

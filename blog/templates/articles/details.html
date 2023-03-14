@@ -8,5 +8,16 @@ Article #{{ article.id }}: {{ article.title }}
     <p>{{ article.body }}</p>
     <div>Published on {{ article.dt_created }}</div>
     <div>by {{ article.author.user.username }}</div>
+    {% if article.tags %}
+    <div>Tags:</div>
+    <ul>
+        {% for tag in article.tags %}
+        <li>
+            <a href="{{ url_for('articles_app.articles-by-tag', tag_name=tag.name) }}">{{
+                tag.name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
 </div>
 {% endblock %}

@@ -8,6 +8,8 @@ from sqlalchemy.sql.expression import not_
 from blog.models.database import db
 from blog.models import Author, Article, Tag
 from blog.forms.article import CreateArticleForm
+import requests
+import json
 
 articles_app = Blueprint("articles_app", __name__)
 
@@ -71,3 +73,13 @@ def articles_by_tag(tag_name):
     if target_articles is None:
         raise NotFound
     return render_template("articles/list.html", articles=target_articles)
+
+
+@articles_app.route("/from-api/", endpoint="articles-from-api")
+def articles_from_api():
+    data = requests.get('http://127.0.0.1:5000/api/articles/')
+    data_dict = json.loads(data.text)
+    articles = []
+    for article in data_dict["data"]:
+        articles.append(article["attributes"]["title"])
+    return render_template("articles/list_from_api.html", articles=articles)
